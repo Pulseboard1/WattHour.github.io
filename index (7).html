@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WattHour — Portable Power Station &amp; Home Backup Power Guides</title>
+<meta name="description" content="Independent, use-case-first guides to portable power stations, solar generators, and home backup power.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   WATTHOUR / design tokens
+   A site about portable power: the visual language borrows
+   from the thing itself — the segmented LED charge bar every
+   power station shows you, running from empty (amber) to
+   full (green).
+   ========================================================= */
+
+:root{
+  --ink:        #1B2127;
+  --ink-soft:   #4B535B;
+  --ink-faint:  #7B848B;
+  --paper:      #EEF2F1;
+  --card:       #FFFFFF;
+  --line:       #D7DEDC;
+  --line-soft:  #E3E8E6;
+
+  --amber:      #E8A33D;
+  --amber-dark: #B97B22;
+  --green:      #3F9142;
+  --green-dark: #2E6E31;
+  --red:        #C24B3F;
+
+  --track:      #DCE3E1;
+
+  --font-display: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-body:    'IBM Plex Sans', -apple-system, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'SF Mono', monospace;
+
+  --radius: 3px;
+  --max: 1160px;
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+img{ max-width: 100%; display: block; }
+a{ color: inherit; }
+h1,h2,h3,h4{
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 .5em;
+  letter-spacing: -0.01em;
+}
+p{ margin: 0 0 1.1em; }
+ul,ol{ padding-left: 1.25em; }
+.container{ max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+:focus-visible{
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* eyebrow / kicker */
+.eyebrow{
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: .9em;
+}
+.eyebrow::before{
+  content: "";
+  width: 8px; height: 8px;
+  background: var(--amber);
+  border-radius: 1px;
+  display: inline-block;
+}
+
+/* =========================================================
+   Signature component: the charge bar.
+   Used as a divider, a rating device, and the calculator
+   readout. 12 segments, fills left→right, amber→green.
+   ========================================================= */
+.charge-bar{
+  --n: 12;
+  --fill: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  gap: 3px;
+  height: 14px;
+  width: 100%;
+}
+.charge-bar span{
+  background: var(--track);
+  border-radius: 1px;
+}
+.charge-bar span.on{ background: var(--amber); }
+.charge-bar span.on.full{ background: var(--green); }
+
+.charge-divider{
+  margin: 64px 0;
+}
+.charge-divider .charge-bar{ height: 6px; opacity: .8; }
+
+/* rating meter used on review/guide cards */
+.meter{ display:flex; align-items:center; gap:12px; margin-top:10px; }
+.meter .charge-bar{ max-width: 160px; }
+.meter-label{
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Header / nav
+   ========================================================= */
+.site-header{
+  position: sticky; top: 0; z-index: 50;
+  background: var(--ink);
+  color: #fff;
+  border-bottom: 3px solid var(--amber);
+}
+.site-header .container{
+  display:flex; align-items:center; justify-content:space-between;
+  height: 68px;
+}
+.brand{
+  display:flex; align-items:center; gap:10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  text-decoration: none;
+  color: #fff;
+}
+.brand-mark{ width: 26px; height: 26px; flex: none; }
+.brand small{
+  display:block;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: .62rem;
+  letter-spacing: .1em;
+  color: var(--amber);
+  text-transform: uppercase;
+}
+nav.primary-nav{ display:flex; align-items:center; gap: 28px; }
+nav.primary-nav a{
+  text-decoration:none;
+  font-size: .92rem;
+  color: #D9DDE1;
+  position: relative;
+  padding: 4px 0;
+}
+nav.primary-nav a:hover, nav.primary-nav a.active{ color:#fff; }
+nav.primary-nav a.active::after{
+  content:"";
+  position:absolute; left:0; right:0; bottom:-4px;
+  height: 2px; background: var(--amber);
+}
+.nav-toggle{
+  display:none;
+  background:none; border:none; color:#fff;
+  font-family: var(--font-mono); font-size: .85rem;
+  cursor:pointer; padding: 8px;
+}
+
+@media (max-width: 860px){
+  nav.primary-nav{
+    position:absolute; top: 68px; left:0; right:0;
+    background: var(--ink);
+    flex-direction: column; align-items: flex-start;
+    padding: 6px 24px 20px;
+    display: none;
+    border-bottom: 3px solid var(--amber);
+  }
+  nav.primary-nav.open{ display:flex; }
+  nav.primary-nav a{ padding: 10px 0; width:100%; border-bottom: 1px solid #2A3138; font-size: 1rem; }
+  .nav-toggle{ display:block; }
+}
+
+/* =========================================================
+   Hero
+   ========================================================= */
+.hero{
+  background: var(--ink);
+  color: #fff;
+  padding: 64px 0 88px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after{
+  content:"";
+  position:absolute; inset:auto -10% -60% -10%;
+  height: 320px;
+  background: radial-gradient(ellipse at center, rgba(232,163,61,.16), transparent 70%);
+  pointer-events:none;
+}
+.hero-grid{
+  display:grid; grid-template-columns: 1.1fr .9fr; gap: 56px; align-items:center;
+  position:relative;
+}
+.hero h1{ font-size: clamp(2.1rem, 4vw, 3.1rem); color:#fff; max-width: 16ch; }
+.hero .lede{ font-size: 1.1rem; color:#C8CDD2; max-width: 46ch; }
+.hero-actions{ display:flex; gap:14px; margin-top: 28px; flex-wrap:wrap; }
+
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding: 13px 22px;
+  font-family: var(--font-display); font-weight:600; font-size:.95rem;
+  text-decoration:none;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor:pointer;
+}
+.btn-primary{ background: var(--amber); color: var(--ink); }
+.btn-primary:hover{ background:#F2B354; }
+.btn-ghost{ border-color:#454C53; color:#fff; }
+.btn-ghost:hover{ border-color:#fff; }
+
+/* mini calculator card in hero */
+.calc-card{
+  background:#fff; color: var(--ink);
+  border-radius: var(--radius);
+  padding: 26px 26px 22px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+}
+.calc-card h3{ font-size: 1rem; margin-bottom: 4px; }
+.calc-card .sub{ font-size:.85rem; color:var(--ink-soft); margin-bottom:18px; }
+.calc-row{ display:flex; align-items:center; justify-content:space-between; padding: 9px 0; border-bottom:1px solid var(--line-soft); font-size:.92rem; }
+.calc-row:last-of-type{ border-bottom:none; }
+.calc-row label{ display:flex; align-items:center; gap:8px; }
+.calc-row input[type=checkbox]{ accent-color: var(--amber); width:16px; height:16px; }
+.calc-row .watt{ font-family: var(--font-mono); color: var(--ink-soft); font-size:.82rem; }
+.calc-result{
+  margin-top: 18px; padding-top: 16px; border-top: 2px solid var(--ink);
+}
+.calc-result .big{
+  font-family: var(--font-mono); font-weight:600; font-size: 1.6rem;
+}
+.calc-result .cap{ font-family: var(--font-mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
+.calc-result p{ font-size:.85rem; color:var(--ink-soft); margin: 8px 0 0; }
+
+@media (max-width: 860px){
+  .hero-grid{ grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   Sections / grids
+   ========================================================= */
+section{ padding: 72px 0; }
+.section-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom: 34px; flex-wrap:wrap; }
+.section-head h2{ font-size: 1.7rem; }
+.section-head .view-all{ font-family: var(--font-mono); font-size:.82rem; text-decoration:none; color: var(--ink-soft); white-space:nowrap; }
+.section-head .view-all:hover{ color: var(--ink); }
+
+.cat-grid{
+  display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+.cat-card{
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-decoration:none; color:var(--ink);
+  display:flex; flex-direction:column; gap: 10px;
+  transition: border-color .15s, transform .15s;
+}
+.cat-card:hover{ border-color: var(--amber); transform: translateY(-2px); }
+.cat-card .tag{ font-family: var(--font-mono); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color: var(--amber-dark); }
+.cat-card h3{ font-size: 1.15rem; margin:0; }
+.cat-card p{ font-size:.9rem; color: var(--ink-soft); margin:0; }
+.cat-card .count{ margin-top:auto; font-family: var(--font-mono); font-size:.78rem; color: var(--ink-faint); padding-top: 10px; }
+
+.art-grid{
+  display:grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+}
+.art-card{
+  background: var(--card); border:1px solid var(--line); border-radius: var(--radius);
+  padding: 22px; text-decoration:none; color:var(--ink);
+  display:flex; flex-direction:column; gap:10px;
+}
+.art-card:hover{ border-color: var(--ink); }
+.art-card .kicker{ font-family: var(--font-mono); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); display:flex; gap:10px; }
+.art-card .kicker .intent{ color: var(--amber-dark); }
+.art-card h3{ font-size: 1.1rem; }
+.art-card p{ font-size:.88rem; color:var(--ink-soft); }
+
+/* article list rows used on category pages */
+.art-list{ display:flex; flex-direction:column; }
+.art-row{
+  display:flex; justify-content:space-between; align-items:center; gap: 18px;
+  padding: 18px 0; border-bottom:1px solid var(--line);
+  text-decoration:none; color: var(--ink);
+}
+.art-row:hover .art-row-title{ color: var(--amber-dark); }
+.art-row-title{ font-weight:600; font-size:1rem; }
+.art-row-meta{ font-family: var(--font-mono); font-size:.72rem; color: var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; margin-top:4px;}
+.art-row-status{
+  font-family: var(--font-mono); font-size:.7rem; letter-spacing:.06em; text-transform:uppercase;
+  padding: 4px 9px; border-radius: 20px; white-space:nowrap;
+}
+.status-live{ background:#E4F1E4; color: var(--green-dark); }
+.status-soon{ background:#F1EFEA; color: var(--ink-faint); }
+
+/* =========================================================
+   Ad slots — clearly labeled so you can drop AdSense units in.
+   ========================================================= */
+.ad-slot{
+  border: 1px dashed #B7C0BD;
+  background: repeating-linear-gradient(135deg, #E5EAE8, #E5EAE8 10px, #DEE4E1 10px, #DEE4E1 20px);
+  border-radius: var(--radius);
+  min-height: 100px;
+  display:flex; align-items:center; justify-content:center;
+  font-family: var(--font-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+  color: var(--ink-faint);
+  margin: 40px 0;
+}
+.ad-slot.leaderboard{ min-height: 90px; }
+.ad-slot.rectangle{ min-height: 250px; max-width: 336px; margin-left:auto; margin-right:auto; }
+.ad-slot.in-article{ min-height: 120px; }
+
+/* =========================================================
+   Article page
+   ========================================================= */
+.article-hero{ background: var(--card); border-bottom:1px solid var(--line); padding: 48px 0 40px; }
+.breadcrumb{ font-family: var(--font-mono); font-size:.75rem; color: var(--ink-soft); margin-bottom:18px; }
+.breadcrumb a{ text-decoration:none; color:var(--ink-soft); }
+.breadcrumb a:hover{ color: var(--ink); }
+.article-hero h1{ font-size: clamp(1.8rem, 3.4vw, 2.5rem); max-width: 26ch; }
+.article-meta{ display:flex; gap: 18px; flex-wrap:wrap; margin-top: 18px; font-family: var(--font-mono); font-size:.78rem; color: var(--ink-soft); }
+.article-meta span{ display:flex; align-items:center; gap:6px; }
+
+.article-body{ max-width: 740px; padding: 48px 24px 0; margin: 0 auto; }
+.article-body h2{ font-size: 1.45rem; margin-top: 2em; }
+.article-body h3{ font-size: 1.15rem; margin-top: 1.6em; }
+.article-body p, .article-body li{ font-size: 1.03rem; color: var(--ink); }
+.article-body .lede{ font-size: 1.15rem; color: var(--ink-soft); }
+.article-body table{ width:100%; border-collapse:collapse; margin: 1.6em 0; font-size:.94rem; }
+.article-body th, .article-body td{ border:1px solid var(--line); padding: 10px 12px; text-align:left; }
+.article-body th{ background:#F4F6F5; font-family: var(--font-mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
+.callout{
+  background: #FBF3E4; border-left: 3px solid var(--amber);
+  padding: 18px 20px; border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.8em 0; font-size:.96rem;
+}
+.callout.safety{ background:#FBEDEB; border-left-color: var(--red); }
+.callout .callout-label{ font-family: var(--font-mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:6px; color: var(--ink-soft); }
+
+.internal-links{
+  max-width: 740px; margin: 56px auto 0; padding: 0 24px;
+}
+.internal-links h4{ font-family: var(--font-mono); font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color: var(--ink-soft); margin-bottom: 14px; }
+.internal-links ul{ list-style:none; padding:0; display:grid; gap:10px; }
+.internal-links a{ text-decoration:none; color: var(--ink); font-weight:600; border-bottom: 1px solid var(--line); display:block; padding-bottom:10px; }
+.internal-links a:hover{ color: var(--amber-dark); }
+.internal-links a::after{ content: " →"; }
+
+/* =========================================================
+   Footer
+   ========================================================= */
+.site-footer{ background: var(--ink); color:#C8CDD2; padding: 56px 0 32px; margin-top: 80px; }
+.footer-grid{ display:grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 32px; }
+.footer-grid h5{ color:#fff; font-family: var(--font-mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; margin-bottom: 14px; }
+.footer-grid ul{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:9px; }
+.footer-grid a{ text-decoration:none; color:#C8CDD2; font-size:.88rem; }
+.footer-grid a:hover{ color:#fff; }
+.footer-bottom{
+  max-width: var(--max); margin: 44px auto 0; padding: 20px 24px 0 24px;
+  border-top: 1px solid #333B42;
+  font-size:.78rem; color: var(--ink-faint);
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+}
+@media (max-width: 860px){
+  .footer-grid{ grid-template-columns: repeat(2,1fr); }
+  .cat-grid{ grid-template-columns: repeat(2,1fr); }
+  .art-grid{ grid-template-columns: 1fr; }
+}
+@media (max-width: 560px){
+  .cat-grid{ grid-template-columns: 1fr; }
+  .footer-grid{ grid-template-columns: 1fr 1fr; }
+}
+
+
+/* ---- SPA routing ---- */
+.page{ display:none; }
+.page.active{ display:block; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="#/" class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="2" y="7" width="17" height="10" rx="1.5" stroke="#E8A33D" stroke-width="1.6"/>
+        <rect x="20" y="10" width="2" height="4" rx="0.5" fill="#E8A33D"/>
+        <path d="M12 9L9 12.3H11.3L10 15L14 11.3H11.7L12 9Z" fill="#E8A33D"/>
+      </svg>
+      <span>WattHour<small>Home Power Guide</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle navigation">MENU</button>
+    <nav class="primary-nav">
+      <a href="#/buying-guides">Buying Guides</a>
+      <a href="#/home-backup">Home Backup</a>
+      <a href="#/camping-outdoor">Camping</a>
+      <a href="#/rv-van-life">RV &amp; Van Life</a>
+      <a href="#/medical-power">Medical Power</a>
+      <a href="#/solar-off-grid">Solar &amp; Off-Grid</a>
+      <a href="#/reviews">Reviews</a>
+      <a href="#/guides">Guides</a>
+      <a href="#/deals">Deals</a>
+    </nav>
+  </div>
+</header>
+<main>
+<section class="page" data-route="/about">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / About WattHour</p>
+    <h1>About WattHour</h1>
+    <div class="article-meta"><span>Who runs this site, and how it's put together</span></div>
+  </div>
+</div>
+<div class="article-body">
+
+  <p class="lede">WattHour exists because most "best portable power station" content is written by whoever can churn out a list fastest, not by anyone thinking through what a reader actually needs to know before they spend $500–$3,000 on backup power.</p>
+
+  <h2>What we do differently</h2>
+  <p>Every guide on this site starts from a specific situation — a 3-day outage, a CPAP machine, an RV air conditioner — and works through the actual math (watts, watt-hours, runtime) behind the recommendation, instead of asserting a pick and moving on. Where a guide cites a spec, a price, or a capacity figure, we tell you to verify it against the current manufacturer listing before buying, because those numbers change faster than an article can be rewritten, and we'd rather be upfront about that than have you find out the hard way.</p>
+
+  <h2>How content gets published</h2>
+  <p>Guides are researched, drafted, and edited before publishing, and checked against manufacturer documentation and established electrical/battery fundamentals rather than assumed. We update older guides when something material changes — a spec, a price range, a safety consideration — rather than leaving them stale.</p>
+
+  <h2>How the site makes money</h2>
+  <p>WattHour runs contextual display advertising (Google AdSense). We do not accept payment from manufacturers to feature or rank a product, and we are not currently part of any affiliate program — see our <a href="#/affiliate-disclosure">Affiliate Disclosure</a> for the current, always-up-to-date status of that.</p>
+
+  <h2>What we're not</h2>
+  <p>We're not a testing lab with a warehouse of every model on the market — some of our reviews and buying guides are still being built out, and we'd rather publish fewer, more careful guides than pad the site with thin ones. If a topic isn't covered yet, it's because we haven't finished it properly, not because we forgot it exists.</p>
+
+  <h2>Questions or corrections</h2>
+  <p>If you spot something inaccurate or outdated, or you have a question about a guide, see our <a href="#/contact">Contact page</a>.</p>
+
+</div>
+<div style="height:40px;"></div>
+</section>
+<section class="page" data-route="/affiliate-disclosure">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / Affiliate Disclosure</p>
+    <h1>Affiliate Disclosure</h1>
+    <div class="article-meta"><span>How this site makes money</span></div>
+  </div>
+</div>
+<div class="article-body">
+
+  <p class="lede">This page states plainly how WattHour makes money and what relationship, if any, we have with the brands we write about.</p>
+
+  <h2>Advertising</h2>
+  <p>WattHour displays contextual advertising served through Google AdSense. Google and its advertising partners may use cookies and similar technologies to serve ads based on your visits to this and other sites — see our <a href="#/privacy-policy">Privacy Policy</a> for details and how to opt out.</p>
+
+  <h2>Affiliate links</h2>
+  <p>WattHour is not currently part of any affiliate or commission-based program. We do not earn a commission on any product mentioned or linked from this site today. If that changes in the future, this page will be updated first, and any affiliate links will be clearly labeled at the point they appear in an article — not disclosed only here.</p>
+
+  <h2>Sponsored content</h2>
+  <p>We do not accept payment from manufacturers or retailers to feature, rank, or favorably review their products. Any paid or sponsored content, if we ever publish it, will be clearly labeled as such in the article itself.</p>
+
+  <h2>Brand mentions</h2>
+  <p>Product and brand names mentioned across this site (Jackery, EcoFlow, Bluetti, Anker, Goal Zero, and others) are used for identification and comparison purposes only. WattHour is not affiliated with, sponsored by, or endorsed by any of these companies.</p>
+
+</div>
+<div style="height:40px;"></div>
+</section>
+<section class="page" data-route="/buying-guides/best-power-station-for-cpap-machines">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/buying-guides">Buying Guides</a> / Best Power Station for CPAP Machines During a Power Outage</p>
+    <h1>Best Power Station for CPAP Machines During a Power Outage</h1>
+    <div class="article-meta">
+      <span>Category: Buying Guides</span>
+      <span>Intent: Commercial</span>
+      <span>~6 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">For a CPAP machine, "good enough" isn't really the standard — this is equipment tied to sleep and, for many users, to broader health management. This guide focuses on how to evaluate options against that higher bar, rather than pushing a single "best" pick without knowing your specific machine and situation.</p>
+
+  <div class="callout safety">
+    <span class="callout-label">Talk to your DME supplier first</span>
+    Your durable medical equipment (DME) provider or sleep clinic can confirm your exact machine's power draw and may have specific guidance or approved backup options. Treat this guide as a framework for evaluating a power station, not a substitute for that conversation — especially if you use supplemental oxygen alongside your CPAP, which changes the equipment and safety picture.
+  </div>
+
+  <h2>What to check before comparing any specific models</h2>
+  <ol>
+    <li><strong>Your machine's actual wattage</strong> — from its label or manual, including with a heated humidifier if you use one. See <a href="#/guides/watt-hours-explained">watt-hours explained</a> for how to read this correctly.</li>
+    <li><strong>Pure sine wave output</strong> — CPAP machines are electronics with internal power supplies that can run inefficiently, run hot, or occasionally show errors on modified sine wave power. A pure sine wave inverter (standard on most mid-range and higher power stations today, but worth confirming) is the safer default.</li>
+    <li><strong>Coverage for at least 2 full nights</strong> — one night of margin isn't really margin. If your calculated need is ~400Wh for one night, look at units in the 700–1,000Wh range or larger so a delayed outage or a bad recharging day doesn't leave you short.</li>
+    <li><strong>A genuinely quiet fan/no fan under light load</strong> — some units run an active cooling fan even at low draw, which matters if the unit will sit in a bedroom overnight.</li>
+    <li><strong>An always-on / no-auto-shutoff mode</strong> — some power stations auto-shut-off at very low current draw to save power, which is a serious problem for a device meant to run all night at low, steady wattage. This is worth confirming directly in the product manual or with the manufacturer, not assuming.</li>
+  </ol>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>A simple framework for comparing specific units</h2>
+  <table>
+    <tr><th>Check this</th><th>Why it matters for CPAP specifically</th></tr>
+    <tr><td>Usable Wh vs. your 2-night estimate</td><td>Determines how many nights of real coverage you get, not just one</td></tr>
+    <tr><td>Inverter type</td><td>Pure sine wave reduces risk of the machine running poorly or erroring</td></tr>
+    <tr><td>Low-load auto shutoff behavior</td><td>A machine that silently loses power mid-night is the core failure mode to avoid</td></tr>
+    <tr><td>Noise level under light, steady load</td><td>Bedroom-appropriate, not just "quiet enough" for daytime use</td></tr>
+    <tr><td>Warranty and return policy</td><td>Test the exact real-world setup at home during the return window, before you need it for real</td></tr>
+  </table>
+
+  <h2>Don't rely on a single point of failure</h2>
+  <p>For health-critical equipment, most guidance from patient advocacy and DME resources points toward layered backup rather than a single battery: know your local options for medical priority status with your utility, keep a plan for where to go if backup power isn't enough, and treat a portable power station as one part of a plan — not the whole plan.</p>
+
+  <h2>Related</h2>
+  <p>If you're figuring out power needs for a camping trip specifically rather than home backup, see <a href="#/camping-outdoor/how-to-power-a-cpap-machine-while-camping">How to Power a CPAP Machine While Camping</a>. For the underlying math, start with <a href="#/guides/watt-hours-explained">Watt-Hours Explained</a>.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/camping-outdoor/how-to-power-a-cpap-machine-while-camping">How to Power a CPAP Machine While Camping</a></li>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/buying-guides">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">Buying Guides</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">Buying guides, organized by who you are — not just what's popular</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">A generic "best power station" list is only useful if you happen to match the reviewer's use case. These guides start from a specific situation — a 3-day outage, an apartment with no garage, a CPAP machine — and work backward to what actually fits.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+      <a href="#/buying-guides/best-power-station-for-cpap-machines" class="art-row">
+        <div>
+          <div class="art-row-title">Best Power Station for CPAP Machines During a Power Outage</div>
+          <div class="art-row-meta">Buying Guides · Commercial</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">More use-case buying guides (home backup, RV, budget, apartment, sump pump, and more) are in production. We publish a guide only once we've worked through the real sizing math for that situation — see our <a href="#/about">editorial approach</a>.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/camping-outdoor/how-many-watts-do-you-need-to-power-a-campsite">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/camping-outdoor">Camping & Outdoor</a> / How Many Watts Do You Need to Power a Campsite?</p>
+    <h1>How Many Watts Do You Need to Power a Campsite?</h1>
+    <div class="article-meta">
+      <span>Category: Camping & Outdoor</span>
+      <span>Intent: Informational</span>
+      <span>~4 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">Campsite power needs are usually much smaller than home backup needs — the trick is resisting the urge to size for "everything" and instead sizing for what actually makes a trip better.</p>
+
+  <h2>A realistic campsite load list</h2>
+  <table>
+    <tr><th>Item</th><th>Approximate running watts</th></tr>
+    <tr><td>String lights / lanterns (LED)</td><td>5-15W</td></tr>
+    <tr><td>Phone charging (per device)</td><td>10-20W</td></tr>
+    <tr><td>Portable speaker</td><td>10-20W</td></tr>
+    <tr><td>Camp fan</td><td>15-45W</td></tr>
+    <tr><td>Laptop</td><td>45-65W</td></tr>
+    <tr><td>Portable mini fridge/cooler</td><td>45-70W running (higher on startup)</td></tr>
+    <tr><td>CPAP machine, if needed</td><td>30-60W (check your device)</td></tr>
+    <tr><td>Electric camp stove or induction burner</td><td>1,000W+ — usually not realistic on a small-to-mid power station</td></tr>
+  </table>
+  <p style="font-size:.85rem; color:var(--ink-soft);">General ranges for planning — check your specific gear's actual rating rather than assuming.</p>
+
+  <h2>A typical weekend setup</h2>
+  <p>Lights, phone charging, a fan, and a speaker for a couple of evenings rarely adds up to more than 100-150W of simultaneous running load. Using the formula from <a href="#/guides/watt-hours-explained">Watt-Hours Explained</a> (Wh = watts × hours), even a modest 300-500Wh power station comfortably covers a weekend of that kind of use without recharging, assuming you're not running a mini fridge continuously or trying to power a full-size appliance.</p>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>Where trips actually run into trouble</h2>
+  <ul>
+    <li><strong>A mini fridge or cooler running continuously</strong> for a multi-day trip adds up faster than people expect — see <a href="#/home-backup/how-long-will-a-power-station-run-my-refrigerator">our refrigerator runtime guide</a> for the underlying math (the same logic applies to a smaller camping fridge).</li>
+    <li><strong>Anything that heats</strong> — a camp stove, kettle, or hair dryer — draws far more than the rest of the list combined and usually isn't realistic on a portable unit sized for the rest of your gear.</li>
+    <li><strong>Assuming solar will fully recharge overnight</strong> — it usually won't; see <a href="#/solar-off-grid/how-many-solar-panels-do-you-need-to-charge-a-power-station">how many solar panels you actually need</a> for realistic expectations.</li>
+  </ul>
+
+  <h2>Sizing for your specific trip</h2>
+  <p>For a full walkthrough with an interactive calculator (built for home backup but the same math applies), see <a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need?</a></p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/home-backup/how-long-will-a-power-station-run-my-refrigerator">How Long Will a Power Station Run My Refrigerator?</a></li>
+    <li><a href="#/solar-off-grid/how-many-solar-panels-do-you-need-to-charge-a-power-station">How Many Solar Panels Do You Need?</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/camping-outdoor/how-to-power-a-cpap-machine-while-camping">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/camping-outdoor">Camping & Outdoor</a> / How to Power a CPAP Machine While Camping</p>
+    <h1>How to Power a CPAP Machine While Camping</h1>
+    <div class="article-meta">
+      <span>Category: Camping & Outdoor</span>
+      <span>Intent: Informational</span>
+      <span>~5 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">A CPAP machine is one of the more forgiving devices to run off a portable power station — it draws relatively modest power — but it's also one where getting the sizing wrong has an immediate, personal consequence: a machine that shuts off partway through the night.</p>
+
+  <div class="callout safety">
+    <span class="callout-label">Before anything else</span>
+    Check your specific CPAP machine's power draw on its label or in the manual — it's usually listed in watts, or as volts × amps you can multiply together. Draw varies notably between models and rises significantly if you use a heated humidifier or heated hose, so don't rely on a generic average for a health-related device. If you're unsure, ask your durable medical equipment (DME) supplier or sleep clinic.
+  </div>
+
+  <h2>Typical power draw (verify against your machine)</h2>
+  <table>
+    <tr><th>Configuration</th><th>Approximate running watts*</th></tr>
+    <tr><td>CPAP, no humidifier</td><td>30–40W</td></tr>
+    <tr><td>CPAP with humidifier (unheated)</td><td>35–45W</td></tr>
+    <tr><td>CPAP with heated humidifier / heated hose</td><td>60–90W+</td></tr>
+  </table>
+  <p style="font-size:.85rem; color:var(--ink-soft);">*General ranges for context only — confirm your machine's actual rating before relying on this for a night's sleep.</p>
+
+  <h2>Estimating a night's runtime</h2>
+  <p>Using the formula from our <a href="#/guides/watt-hours-explained">watt-hours guide</a> (Wh needed = watts × hours), an 8-hour night at 40W needs roughly 320Wh of energy — before accounting for the usable-capacity margin, which pushes the real target closer to 380Wh. A heated humidifier setup at 75W for 8 hours needs roughly 600Wh, adjusted to around 700Wh usable. Multi-night camping trips without a recharge option multiply that figure accordingly.</p>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>Camping-specific tips</h2>
+  <ul>
+    <li><strong>Turn off the humidifier if you can tolerate it</strong> — it's usually the single biggest power draw in a CPAP setup, and skipping it for a trip can roughly halve your energy needs.</li>
+    <li><strong>Solar recharging is a backup, not a guarantee</strong> — cloudy days, tree cover, and short winter daylight all reduce solar input meaningfully; don't plan a multi-night trip assuming solar alone will fully recharge overnight usage.</li>
+    <li><strong>Bring a battery with meaningfully more capacity than your calculated minimum</strong> — camping conditions (cold nights, imperfect solar, an extra night) eat into margin fast.</li>
+    <li><strong>Test the full setup at home first</strong> — run your actual CPAP off your actual power station for a full night before you're relying on it away from an outlet.</li>
+  </ul>
+
+  <h2>If you're sizing for home backup instead</h2>
+  <p>For power outages at home rather than camping trips, see <a href="#/buying-guides/best-power-station-for-cpap-machines">Best Power Station for CPAP Machines During a Power Outage</a>, which also covers backup planning beyond a single battery.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/buying-guides/best-power-station-for-cpap-machines">Best Power Station for CPAP Machines During a Power Outage</a></li>
+    <li><a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/camping-outdoor">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">Camping & Outdoor</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">Power for a weekend outdoors, not a week-long outage</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">Camping power needs look different from home backup: weight and charge time usually matter more than raw capacity. These guides are sized for a trip, not a disaster.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+      <a href="#/camping-outdoor/how-many-watts-do-you-need-to-power-a-campsite" class="art-row">
+        <div>
+          <div class="art-row-title">How Many Watts Do You Need to Power a Campsite?</div>
+          <div class="art-row-meta">Camping · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/camping-outdoor/how-to-power-a-cpap-machine-while-camping" class="art-row">
+        <div>
+          <div class="art-row-title">How to Power a CPAP Machine While Camping</div>
+          <div class="art-row-meta">Camping · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">More camping guides (car camping picks, backpacking-weight units, overlanding, solar charging on the trail, and cold-weather use) are in production.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/contact">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / Contact</p>
+    <h1>Contact</h1>
+    <div class="article-meta"><span>Get in touch</span></div>
+  </div>
+</div>
+<div class="article-body">
+
+  <p class="lede">For corrections, questions about a specific guide, or general inquiries, the fastest way to reach us is email.</p>
+
+  <h2>Get in touch</h2>
+  <p>Whether it's a correction, a question about a specific guide, or something else entirely, the fastest way to reach us is email: <strong>watthour.contact@gmail.com</strong>.</p>
+  <p>If you're flagging an outdated spec, price, or safety detail, tell us which page and what's changed — we'd rather fix it than leave it. We read everything, though we can't provide personalized electrical or medical-equipment safety advice over email; for anything safety-critical, please consult a licensed electrician or your equipment's manufacturer/DME provider directly.</p>
+
+  <h2>Response time</h2>
+  <p>We aim to respond to corrections within a few business days. General inquiries may take longer.</p>
+
+</div>
+<div style="height:40px;"></div>
+</section>
+<section class="page" data-route="/deals">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">Deals & Seasonal</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">Timed to when people are actually buying</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">This section is built to be republished, not written once and forgotten — each roundup goes live a few weeks ahead of its actual demand spike (hurricane season, Black Friday, Prime Day) so it's current when people are actually searching, not stale by the time they find it.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">Our first seasonal roundup is scheduled ahead of the next major demand window rather than published off-season with prices that would already be out of date by the time you read it.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/guides/how-does-a-portable-power-station-work">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/guides">Guides</a> / How a Power Station Works</p>
+    <h1>How Does a Portable Power Station Work?</h1>
+    <div class="article-meta">
+      <span>Category: Guides &amp; Safety</span>
+      <span>Intent: Informational</span>
+      <span>~7 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+  <p class="lede">A portable power station is, at its core, three things in one box: a rechargeable battery, an inverter that turns that battery's DC power into the AC power your household outlets use, and a set of ports and a charge controller that manage everything coming in and going out. There's no engine, no fuel, and no combustion — which is the whole reason it can run indoors, silently, next to a bed or a tent.</p>
+
+  <h2>The three parts, in plain terms</h2>
+
+  <h3>1. The battery</h3>
+  <p>This is the "tank." It stores energy as chemical potential in a lithium battery pack, most commonly lithium iron phosphate (LiFePO4) in newer units, or lithium-ion (NMC) in older and some lighter-weight models. The size of the tank is measured in watt-hours (Wh) — see our full <a href="#/guides/watt-hours-explained">watt-hours explained guide</a> for how to use that number. Bigger Wh means more total energy stored, not necessarily more power available at any one instant.</p>
+
+  <h3>2. The inverter</h3>
+  <p>Batteries store and release direct current (DC). Almost everything you plug into a wall outlet expects alternating current (AC). The inverter is the component that converts DC to AC so a power station can run normal household devices from its AC outlets. Inverter quality matters: a <strong>pure sine wave</strong> inverter produces power close to what the electrical grid delivers, which is safer for sensitive electronics; a <strong>modified sine wave</strong> inverter is cheaper to build but can cause some devices (particularly ones with motors, like certain medical equipment and refrigerator compressors) to run hot, run inefficiently, or refuse to run at all.</p>
+
+  <h3>3. Ports, charge controller, and battery management system (BMS)</h3>
+  <p>The ports are the physical connection points — AC outlets, USB-A, USB-C (often with fast-charging PD support), a car-style 12V port, and on larger units, a dedicated port for solar panel input. Behind the scenes, the battery management system constantly monitors cell temperature, voltage, and current to prevent overcharging, overheating, and the kind of imbalance that degrades a battery pack quickly. This is also why a power station can charge itself while simultaneously powering something else — a feature usually called pass-through charging.</p>
+
+  <h2>Two numbers that describe every power station</h2>
+  <table>
+    <tr><th>Spec</th><th>What it tells you</th></tr>
+    <tr><td>Watt-hours (Wh)</td><td>Total stored energy — how long it can run something before it's empty.</td></tr>
+    <tr><td>Watts (W), continuous and surge/peak</td><td>How much power it can deliver at once — whether it can start and run a specific device.</td></tr>
+  </table>
+  <p>Both numbers matter, and they answer different questions. A power station can have huge capacity (Wh) but a weak inverter (W) that still can't start a device with a high startup surge, like a refrigerator compressor or a sump pump motor. Conversely, a small power station might have plenty of instantaneous wattage but run out of stored energy (Wh) within an hour.</p>
+
+  <div class="callout">
+    <span class="callout-label">Worth knowing</span>
+    A device's startup ("surge") wattage is often 2–3× its running wattage, especially for anything with a motor or compressor. If a power station's spec sheet only lists one wattage number, that's usually the continuous rating — check separately whether it lists a surge rating before assuming it can start your appliance.
+  </div>
+
+  <h2>How charging actually works</h2>
+  <p>Most power stations accept charge from more than one source, often simultaneously:</p>
+  <ul>
+    <li><strong>Wall (AC) charging</strong> — fastest for most units, plugged into a standard outlet.</li>
+    <li><strong>Solar (DC) charging</strong> — via compatible solar panels; charging speed depends on panel wattage, sunlight quality, and the unit's maximum solar input rating, and is close to never as fast as wall charging.</li>
+    <li><strong>Car charging</strong> — via a 12V car outlet, typically the slowest method, useful mainly for topping up on the road.</li>
+  </ul>
+  <p>"Full charge time" specs on a product page usually refer to AC wall charging under ideal conditions — real-world solar charging times are meaningfully longer and vary with weather, so treat solar recharge estimates as a best case, not a guarantee.</p>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>Why this matters for buying decisions</h2>
+  <p>Once you know these three components exist, most "which power station should I buy" questions reduce to matching your device's power draw and your outage/trip length against the unit's watt-hours and wattage rating — not chasing whichever model has the flashiest marketing. That sizing process is covered step by step in <a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></p>
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained: How to Calculate the Size You Need</a></li>
+    <li><a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></li>
+    <li><a href="#/home-backup/power-station-vs-gas-generator">Portable Power Station vs Gas Generator</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/guides">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">Guides & Safety</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">The fundamentals, explained once, properly</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">Most buying decisions in this niche come down to a few concepts — watt-hours, surge vs. running watts, battery chemistry — that get glossed over in product marketing. This section covers them properly, once, so every other guide on the site can link back here instead of re-explaining them.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+      <a href="#/guides/how-does-a-portable-power-station-work" class="art-row">
+        <div>
+          <div class="art-row-title">How Does a Portable Power Station Work? (Explained Simply)</div>
+          <div class="art-row-meta">Guides · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/guides/watt-hours-explained" class="art-row">
+        <div>
+          <div class="art-row-title">Watt-Hours Explained: How to Calculate the Power Station Size You Need</div>
+          <div class="art-row-meta">Guides · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/guides/what-appliances-can-you-not-run-on-a-portable-power-station" class="art-row">
+        <div>
+          <div class="art-row-title">What Appliances Can You NOT Run on a Portable Power Station?</div>
+          <div class="art-row-meta">Guides · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/guides/pure-sine-wave-vs-modified-sine-wave" class="art-row">
+        <div>
+          <div class="art-row-title">Pure Sine Wave vs Modified Sine Wave: Why It Matters</div>
+          <div class="art-row-meta">Guides · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">More fundamentals guides (charging speed, storage, maintenance, warranty terms, and troubleshooting) are in production.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/guides/pure-sine-wave-vs-modified-sine-wave">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/guides">Guides</a> / Pure Sine Wave vs Modified Sine Wave: Why It Matters</p>
+    <h1>Pure Sine Wave vs Modified Sine Wave: Why It Matters</h1>
+    <div class="article-meta">
+      <span>Category: Guides</span>
+      <span>Intent: Informational</span>
+      <span>~4 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">This spec gets buried in the fine print, but it determines whether some of your devices run cleanly, run poorly, or don't run at all.</p>
+
+  <h2>What the terms actually mean</h2>
+  <p>Household electrical grid power follows a smooth, continuous wave pattern — a <strong>pure sine wave</strong>. A power station's inverter converts stored DC battery power into AC power for its outlets, and how closely that conversion mimics the grid's smooth wave determines the type:</p>
+  <ul>
+    <li><strong>Pure sine wave</strong> — closely replicates grid power. Compatible with essentially everything, including sensitive electronics.</li>
+    <li><strong>Modified sine wave</strong> — a cruder, stepped approximation. Cheaper to produce, but not compatible with everything.</li>
+  </ul>
+
+  <h2>What runs poorly (or not at all) on modified sine wave</h2>
+  <table>
+    <tr><th>Device type</th><th>Typical issue on modified sine wave</th></tr>
+    <tr><td>CPAP machines and other medical electronics</td><td>May run hot, run inefficiently, error out, or refuse to start</td></tr>
+    <tr><td>Devices with AC motors (some refrigerators, power tools)</td><td>Can run hotter and less efficiently, potentially shortening motor life</td></tr>
+    <tr><td>Audio/video equipment</td><td>Audible humming or buzzing is a common complaint</td></tr>
+    <tr><td>Laptop chargers, some electronics</td><td>Often fine, but not universally — some run hot or inefficiently</td></tr>
+    <tr><td>Simple resistive loads (basic lights, some heaters)</td><td>Generally unaffected</td></tr>
+  </table>
+
+  <div class="callout safety">
+    <span class="callout-label">If you have medical equipment</span>
+    Don't assume — check directly with your device's manufacturer or your DME provider about pure vs. modified sine wave compatibility before relying on any power station for medical equipment. This is exactly the kind of detail worth confirming before an emergency, not during one.
+  </div>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>The current state of the market</h2>
+  <p>Most mid-range and higher portable power stations sold today use pure sine wave inverters — it's become closer to standard than the exception as costs have come down. Modified sine wave units still exist, typically at the lower end of the price range. The spec is usually listed directly on the product page or in the manual; if it isn't stated anywhere, that's worth treating as a red flag rather than assuming it's pure sine wave by default.</p>
+
+  <h2>Bottom line</h2>
+  <p>Unless you're certain every device you'll ever run is a simple resistive load (basic lighting, for instance) and price is the only priority, pure sine wave is worth paying for. The cost difference has narrowed considerably, and the downside of guessing wrong — a medical device that won't run, or electronics that degrade over time — outweighs the modest savings.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/how-does-a-portable-power-station-work">How Does a Portable Power Station Work?</a></li>
+    <li><a href="#/buying-guides/best-power-station-for-cpap-machines">Best Power Station for CPAP Machines During a Power Outage</a></li>
+    <li><a href="#/guides/what-appliances-can-you-not-run-on-a-portable-power-station">What Appliances Can You NOT Run on a Portable Power Station?</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/guides/watt-hours-explained">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/guides">Guides</a> / Watt-Hours Explained: How to Calculate the Power Station Size You Need</p>
+    <h1>Watt-Hours Explained: How to Calculate the Power Station Size You Need</h1>
+    <div class="article-meta">
+      <span>Category: Guides</span>
+      <span>Intent: Informational</span>
+      <span>~6 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">Watt-hours (Wh) is the single most important number on a power station's spec sheet, and it's the one most often skimmed past. It tells you how much total energy the unit stores — the size of the tank, not the size of the tap. Get comfortable with this one calculation and every sizing question gets much easier.</p>
+
+  <h2>The core formula</h2>
+  <p>Energy used (in watt-hours) equals the power draw of a device (in watts) multiplied by how long you run it (in hours):</p>
+  <div class="callout">
+    <span class="callout-label">Formula</span>
+    Watt-hours needed = Watts × Hours
+  </div>
+  <p>Run a 60-watt device for 5 hours and you've used 300 Wh. Run a 10-watt device for 30 hours and you've also used 300 Wh. Same energy, very different power draw and duration — which is exactly why a single "watts" number on a box doesn't tell you what you need to know on its own.</p>
+
+  <h2>Finding a device's actual wattage</h2>
+  <p>Don't guess — check the device itself. Most appliances and electronics list their power draw on a label (often near the plug or on the underside), usually as watts (W) directly, or as volts × amps, which you can multiply together to get watts. If a label only lists amps (A) for a standard US 120V device, multiply amps by 120 to estimate watts.</p>
+  <table>
+    <tr><th>Typical device</th><th>Running watts (approximate — check your label)</th></tr>
+    <tr><td>Wi-Fi router / modem</td><td>5–15W</td></tr>
+    <tr><td>Laptop</td><td>45–65W</td></tr>
+    <tr><td>LED light bulb</td><td>8–12W each</td></tr>
+    <tr><td>CPAP machine (no heated humidifier)</td><td>30–60W</td></tr>
+    <tr><td>Refrigerator (running, not starting)</td><td>100–200W</td></tr>
+    <tr><td>Sump pump (running)</td><td>800–1,300W</td></tr>
+  </table>
+  <p>These are general ranges to sanity-check your math against — not a substitute for the number printed on your specific appliance, which can vary by model and age.</p>
+
+  <h2>Why "usable" watt-hours is smaller than "rated" watt-hours</h2>
+  <p>A power station rated at 1,000Wh will not actually deliver 1,000Wh of usable output. Between inverter efficiency losses, battery chemistry limits, and the battery management system reserving a small buffer, real-world usable capacity typically runs around 80–90% of the rated figure. When sizing, it's safer to plan against roughly 85% of the rated Wh, not the number printed on the box.</p>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>Worked example</h2>
+  <p>Say you want to run a Wi-Fi router (10W) and four LED lamps (10W each, 40W total) for a 10-hour overnight outage:</p>
+  <ul>
+    <li>Total running watts: 10 + 40 = 50W</li>
+    <li>Energy needed: 50W × 10 hours = 500Wh</li>
+    <li>Accounting for ~85% usable capacity: 500 ÷ 0.85 ≈ 590Wh</li>
+  </ul>
+  <p>That points you toward a power station rated at roughly 600–700Wh or larger for this specific load — with some margin, since outages rarely end exactly on schedule. For a full walk-through that also checks whether the unit can actually <em>start</em> your devices (not just run them), see <a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a>, which includes an interactive calculator.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/how-does-a-portable-power-station-work">How Does a Portable Power Station Work?</a></li>
+    <li><a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></li>
+    <li><a href="#/home-backup/how-long-will-a-power-station-run-my-refrigerator">How Long Will a Power Station Run My Refrigerator?</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/guides/what-appliances-can-you-not-run-on-a-portable-power-station">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/guides">Guides</a> / What Appliances Can You NOT Run on a Portable Power Station?</p>
+    <h1>What Appliances Can You NOT Run on a Portable Power Station?</h1>
+    <div class="article-meta">
+      <span>Category: Guides</span>
+      <span>Intent: Informational</span>
+      <span>~5 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">Portable power stations are more capable than people expect for lights, electronics, and small appliances — and more limited than marketing photos suggest for anything that heats, cools a large space, or has a big motor.</p>
+
+  <h2>The category that causes the most disappointment: heating elements</h2>
+  <p>Anything that generates heat by resistance — space heaters, hair dryers, toasters, electric kettles, clothes irons — draws far more power than most people expect, often 1,000-1,800W or more for a single device. A mid-size power station's entire capacity can be consumed by a space heater in under an hour, and many units' continuous wattage rating can't even start one at full power. This is the single most common expectation mismatch new owners run into.</p>
+
+  <table>
+    <tr><th>Generally realistic</th><th>Generally not realistic on a typical portable unit</th></tr>
+    <tr><td>Lights, phones, laptops, routers, small electronics</td><td>Space heaters, electric water heaters</td></tr>
+    <tr><td>CPAP machines, medical monitors (check your device's wattage)</td><td>Central air conditioning or whole-home HVAC</td></tr>
+    <tr><td>A single refrigerator or mini fridge</td><td>Multiple large appliances simultaneously</td></tr>
+    <tr><td>A fan, small TV, game console</td><td>Electric clothes dryers, electric ranges/ovens</td></tr>
+    <tr><td>Power tools with light-to-moderate draw (check surge rating)</td><td>Well pumps or large sump pumps (check surge rating carefully — some higher-capacity units can handle smaller pumps)</td></tr>
+  </table>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>Why "surge watts" trips people up here too</h2>
+  <p>Some appliances that seem manageable on paper (running wattage) fail to start because their startup surge exceeds the power station's peak output rating. Anything with a compressor or large motor — air conditioners, well pumps, some power tools — falls into this category. Always check both the running and surge/peak wattage figures for both your appliance and the power station before assuming it'll work.</p>
+
+  <h2>How to check before you're relying on it</h2>
+  <ol>
+    <li>Find your device's wattage on its label, in its manual, or on the manufacturer's site.</li>
+    <li>Compare it against the power station's continuous watt rating — and separately, its surge/peak rating if the device has a motor or compressor.</li>
+    <li>Test it at home under normal conditions before you need it during an actual outage or trip.</li>
+  </ol>
+  <p>For the full sizing method, see <a href="#/guides/watt-hours-explained">Watt-Hours Explained</a> and <a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></li>
+    <li><a href="#/guides/how-does-a-portable-power-station-work">How Does a Portable Power Station Work?</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/home-backup/how-long-will-a-power-station-run-my-refrigerator">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/home-backup">Home Backup</a> / How Long Will a Portable Power Station Run My Refrigerator?</p>
+    <h1>How Long Will a Portable Power Station Run My Refrigerator?</h1>
+    <div class="article-meta">
+      <span>Category: Home Backup</span>
+      <span>Intent: Informational</span>
+      <span>~5 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">A refrigerator is one of the trickier appliances to size for — not because it draws much power while running, but because of the surge it demands every time the compressor kicks on. Here's how to work out both numbers.</p>
+
+  <h2>Running watts vs. starting watts</h2>
+  <p>Once a refrigerator's compressor is running, most standard residential units draw somewhere in the range of 100–200 running watts, depending on size, age, and efficiency rating. But starting the compressor from a stop can briefly demand 2–3× that figure for a fraction of a second to a couple of seconds. Check your unit's specific rating — often printed on a sticker inside the fridge or on the back panel, or in the owner's manual — rather than assuming a number.</p>
+
+  <div class="callout">
+    <span class="callout-label">Why this trips people up</span>
+    A power station can show plenty of remaining watt-hours and still fail to start a refrigerator if its surge/peak wattage rating is lower than the fridge's startup demand. Capacity (Wh) and power delivery (W) are two separate specs — you need both to check out.
+  </div>
+
+  <h2>Estimating runtime</h2>
+  <p>Once it's running, use the watt-hours formula from our <a href="#/guides/watt-hours-explained">watt-hours explained guide</a>: divide the power station's usable watt-hours by the fridge's running wattage.</p>
+  <table>
+    <tr><th>Power station usable capacity</th><th>Fridge running load</th><th>Approximate runtime*</th></tr>
+    <tr><td>500Wh</td><td>150W</td><td>~3.3 hours</td></tr>
+    <tr><td>1,000Wh</td><td>150W</td><td>~6.7 hours</td></tr>
+    <tr><td>2,000Wh</td><td>150W</td><td>~13.3 hours</td></tr>
+  </table>
+  <p style="font-size:.85rem; color:var(--ink-soft);">*Simplified estimate assuming the fridge runs continuously at its stated wattage. In practice, a refrigerator's compressor cycles on and off rather than running constantly, so real-world runtime on a given charge is often longer than this table suggests — but don't count on that margin when deciding what to buy.</p>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>A few ways to stretch it further</h2>
+  <ul>
+    <li><strong>Minimize door openings</strong> — every open door lets warm air in and makes the compressor work (and cycle on) more often.</li>
+    <li><strong>Keep the fridge fuller</strong> — more mass (even water bottles) holds cold better than an empty fridge, reducing how often the compressor needs to run.</li>
+    <li><strong>Consider a separate small cooler for short outages</strong> — if the outage is expected to be brief, moving a few perishables to a cooler with ice can let you skip powering the fridge continuously.</li>
+  </ul>
+
+  <h2>Related sizing</h2>
+  <p>If a fridge is one of several devices on your must-power list, work through the full calculation in <a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a>, which includes an interactive calculator that adds up multiple appliances at once.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></li>
+    <li><a href="#/home-backup/hurricane-season-power-outage-prep-checklist">Hurricane Season Power Outage Prep Checklist</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/home-backup/hurricane-season-power-outage-prep-checklist">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/home-backup">Home Backup</a> / Hurricane Season Power Outage Prep Checklist (2026)</p>
+    <h1>Hurricane Season Power Outage Prep Checklist (2026)</h1>
+    <div class="article-meta">
+      <span>Category: Home Backup</span>
+      <span>Intent: Informational</span>
+      <span>~5 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">Hurricane-related outages are rarely a surprise — there's usually days of forecast warning. The households that come through comfortably are the ones who prep before the storm is named, not after the shelves are empty.</p>
+
+  <h2>4–6 weeks before hurricane season</h2>
+  <ul>
+    <li>Fully charge your power station and check it actually holds charge — battery capacity fades over time, and the start of the season is the time to find that out, not mid-storm.</li>
+    <li>Confirm your power station's wattage rating still covers what you plan to run (see <a href="#/home-backup/what-size-power-station-do-i-need">our sizing calculator</a> if your household's needs have changed).</li>
+    <li>If you also have solar panels for charging, check cables and connectors for wear.</li>
+  </ul>
+
+  <h2>When a storm is in the forecast (48–72 hours out)</h2>
+  <ul>
+    <li>Charge every power station and battery bank to 100%.</li>
+    <li>Charge phones, laptops, and any medical device batteries fully.</li>
+    <li>Fill and freeze water bottles or ice packs — they extend refrigerator/cooler runtime and double as backup ice.</li>
+    <li>Confirm you have manual charging cables (not just wireless pads) — they're more power-efficient and more reliable if things get chaotic.</li>
+    <li>If you rely on medical equipment, review your specific plan — see <a href="#/buying-guides/best-power-station-for-cpap-machines">our CPAP power backup guide</a> if that applies to your household.</li>
+  </ul>
+
+  <div class="callout">
+    <span class="callout-label">Don't forget</span>
+    Set your refrigerator and freezer to their coldest safe settings a day before impact — a colder start buys extra hours before food safety becomes a concern if the power does go out.
+  </div>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>During the outage</h2>
+  <ul>
+    <li>Prioritize your must-run list (see <a href="#/home-backup/what-size-power-station-do-i-need">sizing guide</a>) — don't run everything at once if capacity is limited.</li>
+    <li>Keep the power station somewhere dry, ventilated, and out of direct flood risk — not directly on the floor in a flood-prone area.</li>
+    <li>If you also have a gas generator, run it outdoors only — see <a href="#/home-backup/power-station-vs-gas-generator">power station vs. gas generator</a> for the safety details.</li>
+    <li>Recharge via car or solar during any daylight/driving windows, since wall power obviously won't be available.</li>
+  </ul>
+
+  <h2>After the storm</h2>
+  <ul>
+    <li>Let a fully depleted power station cool before recharging if it's been under heavy load.</li>
+    <li>Recharge fully and store it somewhere temperature-stable ahead of the next storm in the season — most lithium batteries hold up best stored around 40–80% charge if it'll sit unused for a while, so top back up closer to the next expected use rather than leaving it at 100% for months.</li>
+  </ul>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></li>
+    <li><a href="#/home-backup/power-station-vs-gas-generator">Portable Power Station vs Gas Generator</a></li>
+    <li><a href="#/buying-guides/best-power-station-for-cpap-machines">Best Power Station for CPAP Machines During a Power Outage</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/home-backup">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">Home Backup</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">Keep the essentials running through a power outage</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">Most homes don't need a whole-house generator — they need the fridge, the router, and a few lights to survive a few days without power. This section is about sizing that correctly, safely, and without overspending.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+      <a href="#/home-backup/what-size-power-station-do-i-need" class="art-row">
+        <div>
+          <div class="art-row-title">What Size Power Station Do I Need for My Home? (Free Calculator)</div>
+          <div class="art-row-meta">Home Backup · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/home-backup/how-long-will-a-power-station-run-my-refrigerator" class="art-row">
+        <div>
+          <div class="art-row-title">How Long Will a Portable Power Station Run My Refrigerator?</div>
+          <div class="art-row-meta">Home Backup · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/home-backup/power-station-vs-gas-generator" class="art-row">
+        <div>
+          <div class="art-row-title">Portable Power Station vs Gas Generator: Pros, Cons, and Costs</div>
+          <div class="art-row-meta">Home Backup · Comparative</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/home-backup/hurricane-season-power-outage-prep-checklist" class="art-row">
+        <div>
+          <div class="art-row-title">Hurricane Season Power Outage Prep Checklist (2026)</div>
+          <div class="art-row-meta">Home Backup · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">More home-backup guides (whole-house sizing, indoor safety, food safety during an outage, winter storms, and cost breakdowns) are in production.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/home-backup/power-station-vs-gas-generator">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/home-backup">Home Backup</a> / Portable Power Station vs Gas Generator: Pros, Cons, and Costs</p>
+    <h1>Portable Power Station vs Gas Generator: Pros, Cons, and Costs</h1>
+    <div class="article-meta">
+      <span>Category: Home Backup</span>
+      <span>Intent: Comparative</span>
+      <span>~6 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">Both keep the power on during an outage, but they're better suited to different situations. Here's an honest comparison — not a case for one being categorically better than the other.</p>
+
+  <table>
+    <tr><th></th><th>Portable power station</th><th>Gas (or dual-fuel) generator</th></tr>
+    <tr><td>Fuel</td><td>Recharges from wall, solar, or car — no fuel storage or trips to a gas station</td><td>Needs gasoline or propane on hand — a real constraint during a widespread outage when stations may be closed or lines are long</td></tr>
+    <tr><td>Noise</td><td>Silent</td><td>Audible, often 50–75+ decibels depending on model and load</td></tr>
+    <tr><td>Indoor use</td><td>Generally safe indoors (check the specific unit's guidance)</td><td>Never indoors or in an attached garage — carbon monoxide risk is serious and has been fatal in real incidents</td></tr>
+    <tr><td>Sustained runtime</td><td>Limited by battery capacity; recharging takes time</td><td>Can run continuously as long as fuel is available</td></tr>
+    <tr><td>Power output</td><td>Typically enough for select circuits and smaller appliances</td><td>Can be sized to run much larger loads, including whole-home setups with a transfer switch</td></tr>
+    <tr><td>Maintenance</td><td>Minimal — no oil changes, no engine upkeep</td><td>Requires regular maintenance, periodic test-running, and fuel stabilization</td></tr>
+    <tr><td>Upfront cost (typical range)</td><td>Roughly $300–$3,000+ depending on capacity</td><td>Roughly $500–$5,000+ depending on size and installation</td></tr>
+  </table>
+
+  <h2>When a power station makes more sense</h2>
+  <ul>
+    <li>You live somewhere gas generators aren't practical or allowed (apartments, condos, some HOAs)</li>
+    <li>Your priority is medical equipment, communication, and a fridge — not the whole house</li>
+    <li>You want something you can also use for camping, RV trips, or as a everyday backup for outages measured in hours, not days</li>
+    <li>Noise and fumes near your home are a real concern (attached housing, close neighbors)</li>
+  </ul>
+
+  <h2>When a gas generator makes more sense</h2>
+  <ul>
+    <li>You expect multi-day outages and need to run larger appliances, well pumps, or HVAC</li>
+    <li>You have safe, ventilated space to run it (never indoors, a garage, or near windows/doors)</li>
+    <li>You're willing to store fuel safely and do periodic maintenance</li>
+  </ul>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <div class="callout safety">
+    <span class="callout-label">Safety note</span>
+    Gas generator carbon monoxide poisoning is a genuine, well-documented risk — always run combustion generators outdoors, well away from windows, doors, and vents, and use a battery-powered CO detector in your home regardless of which option you choose.
+  </div>
+
+  <h2>They're not mutually exclusive</h2>
+  <p>Plenty of households run both: a power station for daily convenience, quiet operation, and medical/communication essentials, with a gas or dual-fuel generator as the fallback for longer or more severe outages. If you're trying to size a power station specifically, start with <a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/home-backup/what-size-power-station-do-i-need">What Size Power Station Do I Need for My Home?</a></li>
+    <li><a href="#/home-backup/hurricane-season-power-outage-prep-checklist">Hurricane Season Power Outage Prep Checklist</a></li>
+    <li><a href="#/guides/how-does-a-portable-power-station-work">How Does a Portable Power Station Work?</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/home-backup/what-size-power-station-do-i-need">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/home-backup">Home Backup</a> / What Size Power Station Do I Need for My Home?</p>
+    <h1>What Size Power Station Do I Need for My Home?</h1>
+    <div class="article-meta">
+      <span>Category: Home Backup</span>
+      <span>Intent: Informational</span>
+      <span>~6 min read + calculator</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">Sizing a power station for home backup comes down to answering two separate questions: what do you need to keep running, and for how long? Skip either one and you'll either overspend on capacity you don't need, or come up short halfway through an outage.</p>
+
+  <h2>Step 1: Decide what actually needs to stay on</h2>
+  <p>Most homes don't need — or can't realistically run — everything during an outage. A useful exercise is sorting your devices into three tiers:</p>
+  <ul>
+    <li><strong>Tier 1 — must stay on:</strong> medical equipment, a sump pump, a refrigerator with food in it, communication (router, phones charged).</li>
+    <li><strong>Tier 2 — nice to have:</strong> a few lights, a laptop, a fan.</li>
+    <li><strong>Tier 3 — skip it:</strong> anything heat-producing (space heaters, hair dryers, toasters) or a whole HVAC system — these draw far more power than a portable unit is realistically sized to handle.</li>
+  </ul>
+
+  <h2>Step 2: Use the calculator</h2>
+  <p>Check the boxes for what you'd want to run, set how many hours you expect to need it for, and this will estimate the watt-hour capacity to look for. It uses the same running-watt figures and the 85%-usable-capacity math explained in <a href="#/guides/watt-hours-explained">Watt-Hours Explained</a>.</p>
+
+  <div class="calc-card" style="max-width:520px; margin: 28px 0;">
+    <h3>Home backup sizing calculator</h3>
+    <p class="sub">Check what you need to keep running during an outage.</p>
+    <div class="calc-checks">
+      <div class="calc-row">
+        <label><input type="checkbox" data-watts="10" checked> Wi-Fi router &amp; modem</label>
+        <span class="watt">10W</span>
+      </div>
+      <div class="calc-row">
+        <label><input type="checkbox" data-watts="150" checked> Refrigerator (running load)</label>
+        <span class="watt">150W</span>
+      </div>
+      <div class="calc-row">
+        <label><input type="checkbox" data-watts="40"> CPAP machine</label>
+        <span class="watt">40W</span>
+      </div>
+      <div class="calc-row">
+        <label><input type="checkbox" data-watts="40" checked> LED lighting (4 lamps)</label>
+        <span class="watt">40W</span>
+      </div>
+      <div class="calc-row">
+        <label><input type="checkbox" data-watts="65"> Laptop + phone charging</label>
+        <span class="watt">65W</span>
+      </div>
+      <div class="calc-row">
+        <label><input type="checkbox" data-watts="45"> Box fan</label>
+        <span class="watt">45W</span>
+      </div>
+    </div>
+    <div class="calc-row" style="margin-top:6px;">
+      <label >Hours of runtime needed</label>
+      <input type="number" class="calc-hours" value="10" min="1" max="72" style="width:56px; font-family:var(--font-mono); border:1px solid var(--line); border-radius:3px; padding:4px 6px;">
+    </div>
+    <div class="calc-result">
+      <span class="cap">Recommended capacity</span>
+      <div class="big calc-result-wh">— Wh</div>
+      <div class="charge-bar calc-result-bar" data-n="12" data-fill="0"></div>
+      <p class="calc-result-note">Select what you need to power to see a recommended capacity.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="callout-label">Sizing isn't just about Wh</span>
+    Capacity (Wh) tells you how long the unit lasts. Separately, check the unit's continuous and surge wattage rating against your highest single-appliance startup surge — a refrigerator or sump pump can briefly draw 2–3× its running wattage on startup, and an underpowered inverter will fail to start it even with plenty of stored energy left.
+  </div>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>Step 3: Round up, then round up again</h2>
+  <p>Real outages don't end on schedule, and cold weather reduces usable battery capacity. It's reasonable to size for at least 25–30% more capacity than your calculated minimum, especially if medical equipment or food safety is involved.</p>
+
+  <h2>When a portable power station isn't enough</h2>
+  <p>If your list of "must stay on" items includes HVAC, well pump, or multiple major appliances, or the expected outage could run several days, a portable power station is likely the wrong tool on its own — see <a href="#/home-backup/power-station-vs-gas-generator">Portable Power Station vs Gas Generator</a> for where that line typically falls, and consider a professionally installed whole-home backup system instead.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/home-backup/how-long-will-a-power-station-run-my-refrigerator">How Long Will a Power Station Run My Refrigerator?</a></li>
+    <li><a href="#/home-backup/power-station-vs-gas-generator">Portable Power Station vs Gas Generator</a></li>
+  </ul>
+</div>
+</section>
+<section class="page active" data-route="/">
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">Home &amp; portable power, sized to your situation</p>
+      <h1>Figure out exactly how much backup power you need — before you buy anything.</h1>
+      <p class="lede">WattHour is a use-case-first guide to portable power stations and solar generators: for power outages, medical equipment, RVs, vans, and camping. No hype, no invented specs — just what runs on what, and for how long.</p>
+      <div class="hero-actions">
+        <a href="#/home-backup" class="btn btn-primary">Start with home backup</a>
+        <a href="#/buying-guides" class="btn btn-ghost">Browse buying guides</a>
+      </div>
+    </div>
+
+    <div class="calc-card">
+      <h3>Quick sizing calculator</h3>
+      <p class="sub">Check what you'd need to keep running, and see roughly how many watt-hours of capacity you need.</p>
+      <div class="calc-checks">
+        <div class="calc-row">
+          <label><input type="checkbox" data-watts="10" checked> Wi-Fi router &amp; modem</label>
+          <span class="watt">10W</span>
+        </div>
+        <div class="calc-row">
+          <label><input type="checkbox" data-watts="60"> Refrigerator (running load)</label>
+          <span class="watt">60W</span>
+        </div>
+        <div class="calc-row">
+          <label><input type="checkbox" data-watts="40"> CPAP machine</label>
+          <span class="watt">40W</span>
+        </div>
+        <div class="calc-row">
+          <label><input type="checkbox" data-watts="40"> LED lighting (4 lamps)</label>
+          <span class="watt">40W</span>
+        </div>
+        <div class="calc-row">
+          <label><input type="checkbox" data-watts="65"> Laptop + phone charging</label>
+          <span class="watt">65W</span>
+        </div>
+      </div>
+      <div class="calc-row" style="margin-top:6px;">
+        <label >Hours of runtime needed</label>
+        <input type="number" class="calc-hours" value="8" min="1" max="72" style="width:56px; font-family:var(--font-mono); border:1px solid var(--line); border-radius:3px; padding:4px 6px;">
+      </div>
+      <div class="calc-result">
+        <span class="cap">Recommended capacity</span>
+        <div class="big calc-result-wh">— Wh</div>
+        <div class="charge-bar calc-result-bar" data-n="12" data-fill="0"></div>
+        <p class="calc-result-note">Select what you need to power to see a recommended capacity.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Nine ways in</p>
+        <h2>Find guides for your situation</h2>
+      </div>
+    </div>
+    <div class="cat-grid">
+
+      <a href="#/buying-guides" class="cat-card">
+        <span class="tag">Start here</span>
+        <h3>Buying Guides</h3>
+        <p>"Best of" roundups and head-to-head comparisons, organized by who's buying and why.</p>
+        <span class="count">1 guide live · more publishing weekly</span>
+      </a>
+
+      <a href="#/home-backup" class="cat-card">
+        <span class="tag">Most popular</span>
+        <h3>Home Backup &amp; Power Outages</h3>
+        <p>Sizing, safety, and what actually keeps running when the grid goes down.</p>
+        <span class="count">4 guides live</span>
+      </a>
+
+      <a href="#/camping-outdoor" class="cat-card">
+        <span class="tag">Outdoors</span>
+        <h3>Camping &amp; Outdoor</h3>
+        <p>Car camping, backpacking, and overlanding power — sized for a weekend, not a blackout.</p>
+        <span class="count">2 guides live</span>
+      </a>
+
+      <a href="#/rv-van-life" class="cat-card">
+        <span class="tag">On the road</span>
+        <h3>RV &amp; Van Life</h3>
+        <p>Sizing for AC units, house batteries, boondocking, and full-time rigs.</p>
+        <span class="count">1 guide live</span>
+      </a>
+
+      <a href="#/medical-power" class="cat-card">
+        <span class="tag">Health-critical</span>
+        <h3>Medical &amp; Accessibility Power</h3>
+        <p>Backup power for CPAP machines, oxygen concentrators, and other equipment you can't go without.</p>
+        <span class="count">3 guides live</span>
+      </a>
+
+      <a href="#/solar-off-grid" class="cat-card">
+        <span class="tag">Off-grid</span>
+        <h3>Solar &amp; Off-Grid Living</h3>
+        <p>Pairing panels with a power station, and what's realistic for cabins, tiny homes, and balconies.</p>
+        <span class="count">2 guides live</span>
+      </a>
+
+      <a href="#/reviews" class="cat-card">
+        <span class="tag">Deep dives</span>
+        <h3>Reviews</h3>
+        <p>Single-product breakdowns — capacity, real-world runtime, and who each model actually suits.</p>
+        <span class="count">In testing — first reviews soon</span>
+      </a>
+
+      <a href="#/guides" class="cat-card">
+        <span class="tag">Learn the basics</span>
+        <h3>Guides &amp; Safety</h3>
+        <p>Watt-hours explained, charging, maintenance, and the safety questions worth asking first.</p>
+        <span class="count">4 guides live</span>
+      </a>
+
+      <a href="#/deals" class="cat-card">
+        <span class="tag">Seasonal</span>
+        <h3>Deals &amp; Seasonal</h3>
+        <p>Storm-season, Prime Day, and Black Friday roundups — refreshed ahead of each demand spike.</p>
+        <span class="count">Publishing ahead of next season</span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--card); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Published so far</p>
+        <h2>Featured guides</h2>
+      </div>
+      <a href="#/guides" class="view-all">See all guides →</a>
+    </div>
+    <div class="art-grid">
+
+      <a href="#/guides/how-does-a-portable-power-station-work" class="art-card">
+        <span class="kicker"><span class="intent">Guides</span> · Informational</span>
+        <h3>How Does a Portable Power Station Work?</h3>
+        <p>What's actually inside the box, explained without the marketing language.</p>
+      </a>
+
+      <a href="#/home-backup/what-size-power-station-do-i-need" class="art-card">
+        <span class="kicker"><span class="intent">Home Backup</span> · Informational</span>
+        <h3>What Size Power Station Do I Need for My Home?</h3>
+        <p>A step-by-step sizing method, plus the interactive calculator.</p>
+      </a>
+
+      <a href="#/home-backup/power-station-vs-gas-generator" class="art-card">
+        <span class="kicker"><span class="intent">Home Backup</span> · Comparative</span>
+        <h3>Portable Power Station vs Gas Generator</h3>
+        <p>Real trade-offs on cost, noise, maintenance, and what each is actually good for.</p>
+      </a>
+
+      <a href="#/home-backup/hurricane-season-power-outage-prep-checklist" class="art-card">
+        <span class="kicker"><span class="intent">Home Backup</span> · Informational</span>
+        <h3>Hurricane Season Power Outage Prep Checklist</h3>
+        <p>What to have ready before the forecast turns, not after.</p>
+      </a>
+
+      <a href="#/rv-van-life/portable-power-station-vs-rv-house-battery" class="art-card">
+        <span class="kicker"><span class="intent">RV & Van Life</span> · Comparative</span>
+        <h3>Portable Power Station vs RV House Battery</h3>
+        <p>When a portable unit adds real value alongside a rig's existing system — and when it's redundant.</p>
+      </a>
+
+      <a href="#/solar-off-grid/lifepo4-vs-lithium-ion-power-stations" class="art-card">
+        <span class="kicker"><span class="intent">Solar & Off-Grid</span> · Comparative</span>
+        <h3>LiFePO4 vs Lithium-Ion Power Stations</h3>
+        <p>The battery chemistry difference that actually affects how long your unit lasts.</p>
+      </a>
+
+      <a href="#/medical-power/how-to-build-a-medical-emergency-power-backup-plan" class="art-card">
+        <span class="kicker"><span class="intent">Medical Power</span> · Informational</span>
+        <h3>How to Build a Medical Emergency Power Backup Plan</h3>
+        <p>A layered plan for equipment you can't go without — beyond just owning a battery.</p>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div style="max-width:680px;">
+      <p class="eyebrow">How this site works</p>
+      <h2>Built to be checked, not just trusted</h2>
+      <p style="color:var(--ink-soft); font-size:1.05rem;">Every buying guide states the runtime math behind its recommendation instead of just asserting a pick. Where we cite a spec — capacity, weight, recharge time — we tell you to confirm it against the current manufacturer listing before you buy, because hardware specs and prices change faster than an article can be rewritten. This site runs display advertising to stay independent; it does not accept payment for placement in a guide.</p>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot rectangle">Ad unit — medium rectangle (300×250)</div>
+</div>
+</section>
+<section class="page" data-route="/medical-power/how-to-build-a-medical-emergency-power-backup-plan">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/medical-power">Medical & Accessibility</a> / How to Build a Medical Emergency Power Backup Plan</p>
+    <h1>How to Build a Medical Emergency Power Backup Plan</h1>
+    <div class="article-meta">
+      <span>Category: Medical & Accessibility</span>
+      <span>Intent: Informational</span>
+      <span>~5 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">A portable power station is one layer of a medical emergency power plan — not the whole plan. This is about building the layers around it, so a single point of failure doesn't become a genuine emergency.</p>
+
+  <div class="callout safety">
+    <span class="callout-label">Start with your care team</span>
+    Your durable medical equipment (DME) supplier, home health agency, or physician can confirm your device's exact power needs and may have specific backup guidance or approved equipment for your situation. This guide is a general framework, not a substitute for that conversation.
+  </div>
+
+  <h2>Layer 1: Know your equipment's real power draw</h2>
+  <p>Get the actual wattage for every piece of equipment you depend on — from the label, the manual, or your DME provider — not an estimate. See <a href="#/guides/watt-hours-explained">Watt-Hours Explained</a> for how to read and use that number.</p>
+
+  <h2>Layer 2: Register for utility medical priority status, if available</h2>
+  <p>Many utilities offer a "medical baseline" or "critical care" program that can provide advance outage notice, priority restoration, or other support for customers with medical equipment needs. Contact your utility directly to ask what's available in your area — this is a step a battery alone can't replace.</p>
+
+  <h2>Layer 3: Size backup power conservatively</h2>
+  <p>Plan for meaningfully more than one night's or one outage's worth of capacity — outages don't reliably end on schedule. See <a href="#/buying-guides/best-power-station-for-cpap-machines">our CPAP-specific guide</a> for one worked example of this approach; the same conservative-margin principle applies to other equipment.</p>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>Layer 4: Have a backup to the backup</h2>
+  <ul>
+    <li>Know the nearest location with reliable power you could relocate to if backup power fails or runs out — a family member's home, a hospital, or a designated community resource.</li>
+    <li>Keep your DME provider's and physician's contact information somewhere accessible without power (written down, not just on a phone that needs charging).</li>
+    <li>If you use battery-dependent mobility equipment too, factor its charging needs into the same plan rather than treating it separately.</li>
+  </ul>
+
+  <h2>Layer 5: Test the whole plan before you need it</h2>
+  <p>Run your actual equipment on your actual backup power source for a realistic stretch of time, under normal conditions — not for the first time during an actual outage. This is the step most plans skip, and it's the one most likely to surface a problem while there's still time to fix it.</p>
+
+  <h2>Related</h2>
+  <p>For hurricane and storm-specific timing, see our <a href="#/home-backup/hurricane-season-power-outage-prep-checklist">Hurricane Season Power Outage Prep Checklist</a>.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/buying-guides/best-power-station-for-cpap-machines">Best Power Station for CPAP Machines During a Power Outage</a></li>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/home-backup/hurricane-season-power-outage-prep-checklist">Hurricane Season Power Outage Prep Checklist</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/medical-power">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">Medical & Accessibility</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">When backup power isn't optional</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">For households with medical equipment, a power outage isn't an inconvenience — it's a safety issue. These guides are written with that stakes level in mind: conservative sizing, real safety margins, and a bias toward telling you to also have a professionally installed backup plan, not just a battery in a closet.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+      <a href="#/medical-power/how-to-build-a-medical-emergency-power-backup-plan" class="art-row">
+        <div>
+          <div class="art-row-title">How to Build a Medical Emergency Power Backup Plan</div>
+          <div class="art-row-meta">Medical Power · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/buying-guides/best-power-station-for-cpap-machines" class="art-row">
+        <div>
+          <div class="art-row-title">Best Power Station for CPAP Machines During a Power Outage</div>
+          <div class="art-row-meta">Buying Guides · Commercial</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/camping-outdoor/how-to-power-a-cpap-machine-while-camping" class="art-row">
+        <div>
+          <div class="art-row-title">How to Power a CPAP Machine While Camping</div>
+          <div class="art-row-meta">Camping · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">More equipment-specific guides (oxygen concentrators, dialysis, ventilators, mobility device charging) are in production and will only be published once verified against manufacturer and DME guidance.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/privacy-policy">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / Privacy Policy</p>
+    <h1>Privacy Policy</h1>
+    <div class="article-meta"><span>What we collect, and your choices</span></div>
+  </div>
+</div>
+<div class="article-body">
+
+  <p class="lede">This policy explains what information WattHour collects, how it's used, and the choices you have. It applies to this website only.</p>
+  <p style="font-size:.85rem; color:var(--ink-soft);">Last updated: [insert date before launch]</p>
+
+  <h2>Information we collect</h2>
+  <h3>Information you provide</h3>
+  <p>If you email us through the <a href="#/contact">Contact page</a>, we receive whatever information you include in that email (such as your email address and message content). We use this only to respond to you.</p>
+
+  <h3>Information collected automatically</h3>
+  <p>Like most websites, this site and its third-party advertising partner (Google) may automatically collect certain information through cookies and similar technologies, including:</p>
+  <ul>
+    <li>Pages visited and time spent on the site</li>
+    <li>Browser type, device type, and approximate location (derived from IP address)</li>
+    <li>Referring website or search terms that led you here</li>
+  </ul>
+
+  <h2>Advertising and cookies (Google AdSense)</h2>
+  <p>This site displays ads served by Google AdSense. Google, as a third-party vendor, uses cookies to serve ads based on your prior visits to this and other websites. Google's use of advertising cookies enables it and its partners to serve ads based on your visit to this site and/or other sites on the internet.</p>
+  <p>You may opt out of personalized advertising by visiting <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google's Ads Settings</a>. Alternatively, you can opt out of some third-party vendors' use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">www.aboutads.info</a>.</p>
+
+  <div class="callout">
+    <span class="callout-label">Before you publish this policy</span>
+    Replace the placeholder contact emails, insert a real "last updated" date, and — if you add analytics (e.g. Google Analytics), email capture, or any other data collection beyond what's described here — update this policy to disclose it accurately. This template covers a display-advertising-only site; it is not legal advice, and if you're serving EU/UK or California visitors you should confirm this meets GDPR/CCPA disclosure requirements for your specific setup, ideally with a lawyer or a dedicated privacy-policy generator tool.
+  </div>
+
+  <h2>How we use information</h2>
+  <p>We use the information described above to operate and improve the site, respond to inquiries, and (via Google AdSense) to display advertising. We do not sell personal information.</p>
+
+  <h2>Third parties</h2>
+  <p>We use Google AdSense to serve advertising. Google's use of data is governed by <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google's Partner Sites policy</a>. We do not otherwise share your information with third parties except as required by law.</p>
+
+  <h2>Your choices</h2>
+  <p>You can disable cookies through your browser settings, though some site features may not work correctly without them. See the opt-out links above for advertising-specific cookie controls.</p>
+
+  <h2>Children's privacy</h2>
+  <p>This site is not directed at children under 13, and we do not knowingly collect personal information from children under 13.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>We may update this policy from time to time. Changes will be posted on this page with an updated "last updated" date.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy can be sent via our <a href="#/contact">Contact page</a>.</p>
+
+</div>
+<div style="height:40px;"></div>
+</section>
+<section class="page" data-route="/reviews">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">Reviews</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">Product reviews, built on a fixed test sheet</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">Every review in this section is written to the same structure — stated capacity vs. usable capacity, measured recharge time, real-appliance runtime, and noise/heat under load — so you can compare across brands without re-reading each one from scratch.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">We haven't published our first review yet. Specs and prices in this niche change often enough that we'd rather hold reviews until we can verify each one against the current manufacturer listing at publish time, rather than carry over numbers that go stale. First reviews are in testing now — see our <a href="#/about">editorial approach</a> for how we handle this.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/rv-van-life">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">RV & Van Life</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">Power for the rig, not just the campsite</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">RVs and vans already have an electrical system — the question is usually whether a portable power station belongs alongside it, in place of it, or not at all. These guides work through that decision by appliance and by rig type.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+      <a href="#/rv-van-life/portable-power-station-vs-rv-house-battery" class="art-row">
+        <div>
+          <div class="art-row-title">Portable Power Station vs RV House Battery: Which Is Better?</div>
+          <div class="art-row-meta">RV & Van Life · Comparative</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">More RV and van-life guides (AC unit sizing, boondocking solar setups, wiring into an existing system, and full-time-living picks) are in production.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/rv-van-life/portable-power-station-vs-rv-house-battery">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/rv-van-life">RV & Van Life</a> / Portable Power Station vs RV House Battery: Which Is Better?</p>
+    <h1>Portable Power Station vs RV House Battery: Which Is Better?</h1>
+    <div class="article-meta">
+      <span>Category: RV & Van Life</span>
+      <span>Intent: Comparative</span>
+      <span>~5 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">If your RV already has a house battery bank, adding a portable power station can feel redundant. Sometimes it is — and sometimes it solves a problem the house battery genuinely can't.</p>
+
+  <h2>What each one is actually built for</h2>
+  <table>
+    <tr><th></th><th>RV house battery</th><th>Portable power station</th></tr>
+    <tr><td>Installation</td><td>Hardwired into the RV's 12V system</td><td>Standalone, unplug and take it anywhere</td></tr>
+    <tr><td>Recharging</td><td>Via the RV's alternator while driving, shore power, or an existing solar array</td><td>Via wall outlet, its own solar panels, or a car port</td></tr>
+    <tr><td>AC power</td><td>Requires a separate inverter (some RVs have one built in, some don't)</td><td>Has a built-in inverter — AC outlets ready to use immediately</td></tr>
+    <tr><td>Portability</td><td>None — stays with the rig</td><td>Comes inside, to a campsite table, or home with you between trips</td></tr>
+    <tr><td>Typical capacity</td><td>Often larger overall, especially in upgraded lithium setups</td><td>Smaller per-unit, but stackable/expandable on some models</td></tr>
+  </table>
+
+  <h2>When a portable power station adds real value alongside a house battery</h2>
+  <ul>
+    <li><strong>Your RV's inverter is weak, old, or nonexistent.</strong> A power station gives you clean AC power without touching the RV's electrical system.</li>
+    <li><strong>You want power outside the rig</strong> — at a picnic table, a beach, or a campsite away from where the RV is parked.</li>
+    <li><strong>You need a portable backup for something power-critical</strong> — medical equipment, a mini fridge in an awning setup — that you don't want tied to the rig's main system.</li>
+    <li><strong>You split time between the RV and other uses</strong> — home backup, camping outside the RV — where something portable earns its keep beyond just RV trips.</li>
+  </ul>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>When it's genuinely redundant</h2>
+  <p>If your RV already has a properly sized lithium house battery bank with a good pure sine wave inverter and solar charging, a portable power station on top of that is often just extra weight and expense solving a problem you don't have. In that case, the better upgrade path is usually expanding the existing house system rather than adding a separate unit.</p>
+
+  <h2>Sizing either option</h2>
+  <p>Regardless of which route you take, the underlying math is the same — see <a href="#/guides/watt-hours-explained">Watt-Hours Explained</a> for how to translate your actual appliance list into a capacity target before comparing specific products or battery bank upgrades.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/guides/how-does-a-portable-power-station-work">How Does a Portable Power Station Work?</a></li>
+    <li><a href="#/solar-off-grid/lifepo4-vs-lithium-ion-power-stations">LiFePO4 vs Lithium-Ion Power Stations</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/solar-off-grid/how-many-solar-panels-do-you-need-to-charge-a-power-station">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/solar-off-grid">Solar & Off-Grid</a> / How Many Solar Panels Do You Need to Charge a Power Station?</p>
+    <h1>How Many Solar Panels Do You Need to Charge a Power Station?</h1>
+    <div class="article-meta">
+      <span>Category: Solar & Off-Grid</span>
+      <span>Intent: Informational</span>
+      <span>~5 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">Solar panel wattage gets marketed as a straightforward number, but real-world charging speed depends on more than what's printed on the panel — and it's rarely as fast as the "full charge time" spec suggests.</p>
+
+  <h2>The basic math</h2>
+  <p>A power station's solar input is limited by two things: the panel's rated wattage, and the unit's maximum solar input rating (check the spec sheet — many models cap solar input well below what you might assume). In ideal, direct, cloudless midday sun, a panel produces close to its rated wattage. Realistically, expect meaningfully less — often in the range of 60-80% of rated output — once you account for panel angle, partial cloud cover, temperature, and time of day.</p>
+
+  <div class="callout">
+    <span class="callout-label">Worked example</span>
+    A 200W-rated solar panel, in good but non-ideal conditions, might realistically deliver something like 120-160W. Charging a 1,000Wh power station from empty under those conditions takes roughly 6-8+ hours of good daylight — not the 5 hours a naive 1000÷200 calculation would suggest.
+  </div>
+
+  <h2>What actually affects real-world charging speed</h2>
+  <ul>
+    <li><strong>Panel angle relative to the sun</strong> — a flat panel misses significant output compared to one angled directly at the sun.</li>
+    <li><strong>Cloud cover</strong> — even light cloud can cut output substantially; heavy cloud can drop it to a small fraction of rated wattage.</li>
+    <li><strong>Panel temperature</strong> — solar panels lose some efficiency as they heat up, which matters on hot, sunny days.</li>
+    <li><strong>The power station's maximum solar input rating</strong> — pairing a 400W panel with a unit that only accepts 200W of solar input wastes the panel's extra capacity.</li>
+    <li><strong>Season and latitude</strong> — shorter winter days and lower sun angles reduce both available hours and per-hour output.</li>
+  </ul>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>A more realistic planning approach</h2>
+  <p>Rather than relying on a manufacturer's best-case "full charge in X hours" claim, plan around roughly half that panel's rated wattage as your realistic average hourly input across a full day of mixed conditions, and treat solar as a way to maintain charge over multiple days rather than a fast, on-demand recharge method. For any situation where you're relying on power overnight — camping, medical equipment, an extended outage — don't plan around same-day solar recovery working perfectly.</p>
+
+  <h2>Related</h2>
+  <p>For the underlying capacity math this builds on, see <a href="#/guides/watt-hours-explained">Watt-Hours Explained</a>. If you're deciding between battery chemistries for a solar setup, see <a href="#/solar-off-grid/lifepo4-vs-lithium-ion-power-stations">LiFePO4 vs Lithium-Ion</a>.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/guides/watt-hours-explained">Watt-Hours Explained</a></li>
+    <li><a href="#/solar-off-grid/lifepo4-vs-lithium-ion-power-stations">LiFePO4 vs Lithium-Ion Power Stations</a></li>
+    <li><a href="#/guides/how-does-a-portable-power-station-work">How Does a Portable Power Station Work?</a></li>
+  </ul>
+</div>
+</section>
+<section class="page" data-route="/solar-off-grid">
+<section style="padding-top:48px; padding-bottom:24px;">
+  <div class="container">
+    <p class="eyebrow">Solar & Off-Grid</p>
+    <h1 style="font-size:clamp(1.9rem,3.4vw,2.6rem); max-width:26ch;">Solar charging, sized honestly</h1>
+    <p style="max-width:640px; font-size:1.05rem; color:var(--ink-soft);">Solar panels get marketed as an unlimited free refill, which oversells what a portable setup can actually deliver day to day. These guides focus on realistic panel-to-battery pairing and what off-grid living actually requires.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot leaderboard">Ad unit — leaderboard (728×90 / responsive)</div>
+</div>
+<section style="padding-top:8px;">
+  <div class="container">
+    <div class="art-list">
+      <a href="#/solar-off-grid/how-many-solar-panels-do-you-need-to-charge-a-power-station" class="art-row">
+        <div>
+          <div class="art-row-title">How Many Solar Panels Do You Need to Charge a Power Station?</div>
+          <div class="art-row-meta">Solar & Off-Grid · Informational</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+      <a href="#/solar-off-grid/lifepo4-vs-lithium-ion-power-stations" class="art-row">
+        <div>
+          <div class="art-row-title">LiFePO4 vs Lithium-Ion Power Stations: Which Battery Lasts Longer?</div>
+          <div class="art-row-meta">Solar & Off-Grid · Comparative</div>
+        </div>
+        <span class="art-row-status status-live">Live</span>
+      </a>
+    </div>
+    <p style="font-size:.9rem; color:var(--ink-faint); margin-top:24px; max-width:640px;">More guides on off-grid cabin sizing, tiny house setups, balcony solar for apartments, and expandable-capacity units are in production.</p>
+  </div>
+</section>
+</section>
+<section class="page" data-route="/solar-off-grid/lifepo4-vs-lithium-ion-power-stations">
+<div class="article-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="#/">Home</a> / <a href="#/solar-off-grid">Solar & Off-Grid</a> / LiFePO4 vs Lithium-Ion Power Stations: Which Battery Lasts Longer?</p>
+    <h1>LiFePO4 vs Lithium-Ion Power Stations: Which Battery Lasts Longer?</h1>
+    <div class="article-meta">
+      <span>Category: Solar & Off-Grid</span>
+      <span>Intent: Comparative</span>
+      <span>~5 min read</span>
+    </div>
+  </div>
+</div>
+
+<div class="article-body">
+
+  <p class="lede">Most current portable power stations use one of two lithium battery chemistries — LiFePO4 (lithium iron phosphate) or NMC/NCA lithium-ion — and the difference between them matters more than most spec sheets make obvious.</p>
+
+  <h2>The core trade-off</h2>
+  <table>
+    <tr><th></th><th>LiFePO4</th><th>Lithium-ion (NMC/NCA)</th></tr>
+    <tr><td>Typical cycle life</td><td>Often rated around 2,000-4,000+ full charge cycles to 80% capacity</td><td>Often rated around 500-1,000 full charge cycles to 80% capacity</td></tr>
+    <tr><td>Energy density</td><td>Lower — heavier for the same capacity</td><td>Higher — lighter for the same capacity</td></tr>
+    <tr><td>Thermal stability</td><td>Generally more stable, lower fire risk under stress</td><td>Generally less thermally stable than LiFePO4</td></tr>
+    <tr><td>Typical use case today</td><td>Home backup, RV, and other units where cycle life and safety margin matter more than weight</td><td>Ultralight and budget-oriented units where weight or price is the priority</td></tr>
+  </table>
+  <p style="font-size:.85rem; color:var(--ink-soft);">Exact cycle-life and safety figures vary by manufacturer and specific cell — check the individual product's documentation rather than assuming these ranges apply universally.</p>
+
+  <h2>Why cycle life matters more than it sounds like it should</h2>
+  <p>"Cycle life" is how many full charge-discharge cycles a battery can handle before it degrades to roughly 80% of its original capacity. For a power station charged and drained occasionally for outages, this might not matter much either chemistry lasts years. But for daily use, frequent camping trips, or off-grid living where the battery cycles often, the gap between roughly 500 cycles and roughly 3,000+ cycles is the difference between replacing (or noticeably degrading) a unit within a couple of years versus getting a decade or more of regular use out of it.</p>
+
+  <div class="ad-slot in-article">Ad unit — in-article (responsive)</div>
+
+  <h2>Which one should influence your decision</h2>
+  <ul>
+    <li><strong>Home backup, used occasionally:</strong> either chemistry is reasonable; LiFePO4's longer shelf life sitting at partial charge is a modest advantage for equipment that mostly sits waiting.</li>
+    <li><strong>Frequent camping, van life, or daily cycling:</strong> LiFePO4's cycle-life advantage compounds significantly over years of regular use.</li>
+    <li><strong>Backpacking or anywhere weight is the dominant constraint:</strong> lithium-ion's better energy density may be worth the shorter cycle life trade-off.</li>
+    <li><strong>Anywhere the unit will be indoors near people overnight</strong> (bedroom, tent) — LiFePO4's thermal stability profile is generally considered the more conservative choice, though both chemistries are used safely in consumer products when properly engineered.</li>
+  </ul>
+
+  <h2>How to check which chemistry a specific unit uses</h2>
+  <p>Battery chemistry is usually listed directly in the product specifications — look for "LiFePO4," "LFP," "NMC," or "NCA." If it isn't listed anywhere on the product page, that's worth asking the manufacturer directly before buying, since it materially affects how the unit will perform for you over time.</p>
+
+</div>
+
+<div class="internal-links">
+  <h4>Related reading</h4>
+  <ul>
+    <li><a href="#/solar-off-grid/how-many-solar-panels-do-you-need-to-charge-a-power-station">How Many Solar Panels Do You Need?</a></li>
+    <li><a href="#/guides/how-does-a-portable-power-station-work">How Does a Portable Power Station Work?</a></li>
+    <li><a href="#/rv-van-life/portable-power-station-vs-rv-house-battery">Portable Power Station vs RV House Battery</a></li>
+  </ul>
+</div>
+</section>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a href="#/" class="brand" style="margin-bottom:14px;">
+        <svg class="brand-mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="2" y="7" width="17" height="10" rx="1.5" stroke="#E8A33D" stroke-width="1.6"/>
+          <rect x="20" y="10" width="2" height="4" rx="0.5" fill="#E8A33D"/>
+          <path d="M12 9L9 12.3H11.3L10 15L14 11.3H11.7L12 9Z" fill="#E8A33D"/>
+        </svg>
+        <span>WattHour</span>
+      </a>
+      <p style="font-size:.85rem; max-width:32ch; color:#8B939A;">Independent, use-case-first guides to portable power stations, solar generators, and home backup power.</p>
+    </div>
+    <div>
+      <h5>Guides</h5>
+      <ul>
+        <li><a href="#/home-backup">Home Backup</a></li>
+        <li><a href="#/camping-outdoor">Camping</a></li>
+        <li><a href="#/rv-van-life">RV &amp; Van Life</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>By Need</h5>
+      <ul>
+        <li><a href="#/medical-power">Medical Power</a></li>
+        <li><a href="#/solar-off-grid">Solar &amp; Off-Grid</a></li>
+        <li><a href="#/deals">Deals</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Resources</h5>
+      <ul>
+        <li><a href="#/reviews">Reviews</a></li>
+        <li><a href="#/guides">How-To Guides</a></li>
+        <li><a href="#/buying-guides">Buying Guides</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Site</h5>
+      <ul>
+        <li><a href="#/about">About</a></li>
+        <li><a href="#/contact">Contact</a></li>
+        <li><a href="#/privacy-policy">Privacy Policy</a></li>
+        <li><a href="#/affiliate-disclosure">Affiliate Disclosure</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 WattHour. All specs and prices should be verified with the manufacturer before purchase.</span>
+    <span>Not affiliated with Jackery, EcoFlow, Bluetti, Anker, or Goal Zero.</span>
+  </div>
+</footer>
+
+<script>
+
+var ROUTE_TITLES = {'/about': 'About WattHour | Independent Portable Power Station Guides', '/affiliate-disclosure': 'Affiliate Disclosure | WattHour', '/buying-guides/best-power-station-for-cpap-machines': 'Best Power Station for CPAP Machines During a Power Outage | WattHour', '/buying-guides': 'Buying Guides — Best Portable Power Stations by Use Case | WattHour', '/camping-outdoor/how-many-watts-do-you-need-to-power-a-campsite': 'How Many Watts Do You Need to Power a Campsite? | WattHour', '/camping-outdoor/how-to-power-a-cpap-machine-while-camping': 'How to Power a CPAP Machine While Camping | WattHour', '/camping-outdoor': 'Camping & Outdoor Power Guides | WattHour', '/contact': 'Contact WattHour', '/deals': 'Power Station Deals & Seasonal Roundups | WattHour', '/guides/how-does-a-portable-power-station-work': 'How Does a Portable Power Station Work? (Explained Simply) | WattHour', '/guides': 'How-To Guides & Safety | WattHour', '/guides/pure-sine-wave-vs-modified-sine-wave': 'Pure Sine Wave vs Modified Sine Wave: Why It Matters | WattHour', '/guides/watt-hours-explained': 'Watt-Hours Explained: How to Calculate the Power Station Size You Need | WattHour', '/guides/what-appliances-can-you-not-run-on-a-portable-power-station': 'What Appliances Can You NOT Run on a Portable Power Station? | WattHour', '/home-backup/how-long-will-a-power-station-run-my-refrigerator': 'How Long Will a Portable Power Station Run My Refrigerator? | WattHour', '/home-backup/hurricane-season-power-outage-prep-checklist': 'Hurricane Season Power Outage Prep Checklist (2026) | WattHour', '/home-backup': 'Home Backup & Power Outage Guides | WattHour', '/home-backup/power-station-vs-gas-generator': 'Portable Power Station vs Gas Generator: Pros, Cons, and Costs | WattHour', '/home-backup/what-size-power-station-do-i-need': 'What Size Power Station Do I Need for My Home? (Free Calculator) | WattHour', '/': 'WattHour — Portable Power Station & Home Backup Power Guides', '/medical-power/how-to-build-a-medical-emergency-power-backup-plan': 'How to Build a Medical Emergency Power Backup Plan | WattHour', '/medical-power': 'Medical & Accessibility Power Backup Guides | WattHour', '/privacy-policy': 'Privacy Policy | WattHour', '/reviews': 'Portable Power Station Reviews | WattHour', '/rv-van-life': 'RV & Van Life Power Guides | WattHour', '/rv-van-life/portable-power-station-vs-rv-house-battery': 'Portable Power Station vs RV House Battery: Which Is Better? | WattHour', '/solar-off-grid/how-many-solar-panels-do-you-need-to-charge-a-power-station': 'How Many Solar Panels Do You Need to Charge a Power Station? | WattHour', '/solar-off-grid': 'Solar & Off-Grid Living Power Guides | WattHour', '/solar-off-grid/lifepo4-vs-lithium-ion-power-stations': 'LiFePO4 vs Lithium-Ion Power Stations: Which Battery Lasts Longer? | WattHour'};
+
+function currentRoute() {
+  var h = location.hash.replace(/^#/, '');
+  if (!h) h = '/';
+  return h;
+}
+
+function renderRoute() {
+  var route = currentRoute();
+  var pages = document.querySelectorAll('.page');
+  var matched = false;
+  pages.forEach(function(p) {
+    if (p.getAttribute('data-route') === route) {
+      p.classList.add('active');
+      matched = true;
+    } else {
+      p.classList.remove('active');
+    }
+  });
+  if (!matched) {
+    var home = document.querySelector('.page[data-route="/"]');
+    if (home) home.classList.add('active');
+  }
+  if (ROUTE_TITLES[route]) document.title = ROUTE_TITLES[route];
+  window.scrollTo(0, 0);
+  var nav = document.querySelector('.primary-nav');
+  if (nav) nav.classList.remove('open');
+  var toggle = document.querySelector('.nav-toggle');
+  if (toggle) toggle.textContent = 'MENU';
+}
+
+window.addEventListener('hashchange', renderRoute);
+
+document.addEventListener('DOMContentLoaded', function () {
+  renderRoute();
+
+  var toggle = document.querySelector('.nav-toggle');
+  var nav = document.querySelector('.primary-nav');
+  if (toggle && nav) {
+    toggle.addEventListener('click', function () {
+      nav.classList.toggle('open');
+      toggle.textContent = nav.classList.contains('open') ? 'CLOSE' : 'MENU';
+    });
+  }
+
+  document.querySelectorAll('.charge-bar[data-fill]').forEach(renderChargeBar);
+  document.querySelectorAll('.calc-checks').forEach(function(checksEl) {
+    initCalcWidget(checksEl.closest('.calc-card'));
+  });
+});
+
+function renderChargeBar(el) {
+  var n = parseInt(el.dataset.n || '12', 10);
+  var fill = parseInt(el.dataset.fill || '0', 10);
+  setChargeBarSegments(el, n);
+  setChargeBar(el, fill);
+}
+function setChargeBarSegments(el, n) {
+  el.style.setProperty('--n', n);
+  el.innerHTML = '';
+  for (var i = 0; i < n; i++) { el.appendChild(document.createElement('span')); }
+}
+function setChargeBar(el, pct) {
+  var segs = el.querySelectorAll('span');
+  var n = segs.length || 12;
+  var litCount = Math.round((pct / 100) * n);
+  segs.forEach(function (s, i) {
+    s.classList.remove('on', 'full');
+    if (i < litCount) {
+      s.classList.add('on');
+      if (pct >= 90) s.classList.add('full');
+    }
+  });
+}
+
+function initCalcWidget(card) {
+  if (!card) return;
+  var checksWrap = card.querySelector('.calc-checks');
+  var hoursInput = card.querySelector('.calc-hours');
+  var resultWh = card.querySelector('.calc-result-wh');
+  var resultNote = card.querySelector('.calc-result-note');
+  var resultBar = card.querySelector('.calc-result-bar');
+  if (!checksWrap || !hoursInput || !resultWh) return;
+
+  if (resultBar) setChargeBarSegments(resultBar, parseInt(resultBar.dataset.n || '12', 10));
+
+  function update() {
+    var checked = checksWrap.querySelectorAll('input[type=checkbox]:checked');
+    var totalWatts = 0;
+    checked.forEach(function (c) { totalWatts += parseInt(c.dataset.watts, 10); });
+    var hours = parseFloat(hoursInput.value) || 8;
+    var rawWh = totalWatts * hours;
+    var usableWh = totalWatts > 0 ? Math.ceil((rawWh / 0.85) / 50) * 50 : 0;
+
+    resultWh.textContent = usableWh > 0 ? usableWh.toLocaleString() + ' Wh' : '— Wh';
+    if (resultNote) {
+      resultNote.textContent = usableWh > 0
+        ? totalWatts + 'W running load for ' + hours + ' hours, with headroom for battery efficiency losses.'
+        : 'Select what you need to power to see a recommended capacity.';
+    }
+    var pct = Math.min(100, Math.round((usableWh / 3000) * 100));
+    if (resultBar) setChargeBar(resultBar, pct);
+  }
+
+  checksWrap.addEventListener('change', update);
+  hoursInput.addEventListener('input', update);
+  update();
+}
+
+</script>
+</body>
+</html>
